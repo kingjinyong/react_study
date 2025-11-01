@@ -152,6 +152,7 @@ function App() {
     "파이썬독학",
   ]);
   let [따봉, 따봉변경] = useState([0, 0, 0]);
+  let [날짜, 날짜추가] = useState([Date.now(), Date.now(), Date.now()]);
   let [modal, setModal] = useState(false);
   let [title, setTitle] = useState(0);
   let [입력값, 입력값변경] = useState("");
@@ -186,14 +187,14 @@ function App() {
                 onClick={(e) => {
                   e.stopPropagation();
                   let d = [...글제목];
-                  d.pop(i);
+                  d.splice(i, 1);
                   글제목변경(d);
                 }}
               >
                 삭제
               </button>
             </h4>
-            <p>2월 17일 발행</p>
+            <p>{날짜[i]}</p>
           </div>
         );
       })}
@@ -210,9 +211,13 @@ function App() {
           p.unshift(입력값);
           글제목변경(p);
           // 따봉 요소 추가
-          let d = [...따봉];
-          d.unshift(0);
-          따봉변경(d);
+          let l = [...따봉];
+          l.unshift(0);
+          따봉변경(l);
+          // 날짜 요소 추가
+          let d = [...날짜];
+          d.unshift(Date.now());
+          날짜추가(d);
         }}
       >
         발행
