@@ -5,11 +5,14 @@ import { Button, Container, Nav, Navbar, Row, Col } from "react-bootstrap";
 import data from "./data.js";
 import { Routes, Route, Link, useNavigate, Outlet } from "react-router-dom";
 import Detail from "./pages/Detail.jsx";
+import axios from "axios";
 
 function App() {
-  let [shoes] = useState(data);
+  let [shoes, setShoes] = useState(data);
   let navigate = useNavigate();
-
+  let [loading, setLoading] = useState(false);
+  let [hidden, setHidden] = useState(true);
+  let [count, setCount] = useState(1);
   return (
     <div className="App">
       <Navbar bg="primary" data-bs-theme="dark">
@@ -48,6 +51,38 @@ function App() {
                   })}
                 </Row>
               </Container>
+              {hidden ? (
+                <button
+                  onClick={() => {
+                    setLoading(true);
+                    axios
+                      .get(
+                        `https://codingapple1.github.io/shop/data${
+                          count + 1
+                        }.json`
+                      )
+                      .then((result) => {
+                        setTimeout(() => {
+                          let copy = [...shoes, ...result.data];
+                          setShoes(copy);
+                          setCount(count + 1);
+                          if (count + 1 == 3) setHidden(false);
+
+                          setLoading(false);
+                        }, 500);
+                      })
+                      .catch(() => {
+                        setLoading(false);
+                        console.log("실패함 ㅅㄱ");
+                      });
+                  }}
+                >
+                  버튼
+                </button>
+              ) : (
+                <div>더이상 상품이 없습니다.</div>
+              )}
+              {loading ? <div>로딩중입니다.</div> : null}
             </div>
           }
         />
@@ -301,4 +336,17 @@ useEffect(() => {
   }, [])
 4. useEffect 실행 전에 뭔가 실행하려면 언제나 return () => {}
 5. 특정 state 변경 시에만 실행하려면 [state명]
-  */
+
+ajax 요청 실패할 경우
+.catch() 사용
+
+
+axios.post("/as;dlkfj", { name: "kim" });
+
+Promise.all([axios.get("/url1"), axios.get("/url2")]).then(
+  () => {}
+);
+
+axios.get("/url1"); // 동시에 ajax 요청 여러개 하려면
+axios.get("/url2");
+*/
