@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { createContext, useState } from "react";
 import "./App.css";
 import { Button, Container, Nav, Navbar, Row, Col } from "react-bootstrap";
 // import bg from "./assets/bg.png";
@@ -7,9 +7,13 @@ import { Routes, Route, Link, useNavigate, Outlet } from "react-router-dom";
 import Detail from "./pages/Detail.jsx";
 import axios from "axios";
 
+export let Context1 = createContext();
+
 function App() {
   let [shoes, setShoes] = useState(data);
   let navigate = useNavigate();
+  let [재고] = useState([10, 11, 12]);
+
   let [loading, setLoading] = useState(false);
   let [hidden, setHidden] = useState(true);
   let [count, setCount] = useState(1);
@@ -87,7 +91,16 @@ function App() {
           }
         />
 
-        <Route path="/detail/:id" element={<Detail shoes={shoes} />} />
+        <Route
+          className=""
+          path="/detail/:id"
+          element={
+            <Context1.Provider value={{ 재고, shoes }}>
+              {/* 여기 안의 모든 컴포넌트는 재고, shoes 사용 가능 */}
+              <Detail shoes={shoes} />
+            </Context1.Provider>
+          }
+        />
 
         <Route path="/about" element={<About />}>
           <Route path="member" element={<div>멤버임</div>} />
@@ -349,4 +362,28 @@ Promise.all([axios.get("/url1"), axios.get("/url2")]).then(
 
 axios.get("/url1"); // 동시에 ajax 요청 여러개 하려면
 axios.get("/url2");
+
+전환 애니메이션은 부착하면 애니메이션 나오는 className 하나 만들고 원할 때 부착하면 됨.
+
+1. 애니메이션 동작 전 className 만들기
+2. 애니메이션 동작 후 className 만들기
+3. className에 transition 속성 추가
+4. 원할 떄 2번 className 부착 -> 탭 state가 변할 떄 end 부착
+
+
+문자 중간에 변수 넣으려면 `문자 ${변수} 문자`
+
+
+props n번 쓰지 않는 법 -> Context API
+컴포넌트 여러개 겹쳐있을 때 사용하면 좋을 듯
+
+세팅1. createContext() -> state 보관함
+세팅2. <Context>로 원하는 컴포넌트 감싸기
+세팅3. value={{state1, state2, ...}}
+
+Context API 특징
+1. state 변경시 쓸데없는 것 까지 재렌더링
+2. 나중에 컴포넌트 재사용이 어려움
+
+Context API 보다는 외부 라이브러리 사용함.
 */

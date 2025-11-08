@@ -1,12 +1,28 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Container, Row, Col, Nav } from "react-bootstrap";
 import { useParams } from "react-router-dom";
+// state 사용은 1. Context를 import
+import { Context1 } from "./../App.jsx";
 
 function Detail({ shoes }) {
+  let { 재고 } = useContext(Context1);
+
   let [visible, setVisible] = useState(true);
   let [count, setCount] = useState(0);
   let [num, setNum] = useState("");
   let [tab, setTab] = useState(0);
+
+  let [fade, setFade] = useState("");
+
+  useEffect(() => {
+    // fade라는 state를 end로 바꿔주세요
+
+    setFade("end");
+    return () => {
+      setFade("");
+    };
+    // state가 변할 때 end 뗐다가 부착
+  }, []); // tab이라는게 변경될 때 마다 안의 코드 실행해줌
 
   useEffect(() => {
     let a = setTimeout(() => {
@@ -31,7 +47,7 @@ function Detail({ shoes }) {
     return x.id == id;
   });
   return (
-    <Container>
+    <Container className={`start ${fade}`}>
       {visible ? (
         <div className="alert alert-warning">2초이내 구매시 할인</div>
       ) : null}
@@ -43,6 +59,7 @@ function Detail({ shoes }) {
       >
         버튼
       </button>
+      {재고[0]}
       <Row>
         <Col>
           <img
@@ -108,16 +125,26 @@ function Detail({ shoes }) {
 }
 
 function TabContent({ tab }) {
-  // if (tab == 0) {
-  //   return <div>내용0</div>;
-  // }
-  // if (tab == 1) {
-  //   return <div>내용1</div>;
-  // }
-  // if (tab == 2) {
-  //   return <div>내용2</div>;
-  // }
-  return [<div>내용0</div>, <div>내용1</div>, <div>내용2</div>][tab];
+  let [fade, setFade] = useState("");
+  let { 재고 } = useContext(Context1);
+
+  useEffect(() => {
+    // fade라는 state를 end로 바꿔주세요
+    let a = setTimeout(() => {
+      setFade("end");
+    }, 10);
+    return () => {
+      clearTimeout(a);
+      setFade("");
+    };
+    // state가 변할 때 end 뗐다가 부착
+  }, [tab]); // tab이라는게 변경될 때 마다 안의 코드 실행해줌
+
+  return (
+    <div className={`start ${fade}`}>
+      {[<div>{재고[0]}</div>, <div>내용1</div>, <div>내용2</div>][tab]}
+    </div>
+  );
 }
 
 export default Detail;
