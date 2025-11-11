@@ -1,4 +1,4 @@
-import { createContext, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import { Button, Container, Nav, Navbar, Row, Col } from "react-bootstrap";
 // import bg from "./assets/bg.png";
@@ -6,8 +6,7 @@ import data from "./data.js";
 import { Routes, Route, Link, useNavigate, Outlet } from "react-router-dom";
 import Detail from "./pages/Detail.jsx";
 import axios from "axios";
-
-export let Context1 = createContext();
+import Cart from "./pages/Cart.jsx";
 
 function App() {
   let [shoes, setShoes] = useState(data);
@@ -92,15 +91,14 @@ function App() {
         />
 
         <Route
-          className=""
           path="/detail/:id"
           element={
-            <Context1.Provider value={{ 재고, shoes }}>
-              {/* 여기 안의 모든 컴포넌트는 재고, shoes 사용 가능 */}
-              <Detail shoes={shoes} />
-            </Context1.Provider>
+            // 여기 안의 모든 컴포넌트는 재고, shoes 사용 가능
+            <Detail shoes={shoes} />
           }
         />
+
+        <Route path="/cart" element={<Cart />}></Route>
 
         <Route path="/about" element={<About />}>
           <Route path="member" element={<div>멤버임</div>} />
@@ -386,4 +384,33 @@ Context API 특징
 2. 나중에 컴포넌트 재사용이 어려움
 
 Context API 보다는 외부 라이브러리 사용함.
+
+<tr> 넣으면 가로줄 생김
+<th>, <td> 넣으면 열 하나 생김
+
+Redux 사용하면 컴포넌트들이 props 없이 state공유 가능
+
+세팅1. store.js 파일 생성 & 세팅 코드 작성
+세팅2. index.js 가서 <Provider store={store}> 쓰기
+
+Redux 왜 씀?
+- 컴포넌트간 state 공유 편해짐
+- 프로젝트가 커지면 컴포넌트가 막 10개씩 겹치고 그럴 때 필요
+
+Redux store 안에 모든 것을 넣지 말기
+
+컴포넌트간 공유가 필요없으면 그냥 useState() 써도 될듯
+
+Redux의 state 변경하는 법
+- state 수정해주는 함수 만들고
+- 원할 때 그 함수 실행해달라고 store.js에 요청
+
+1. state 수정해주는 함수 만들기
+2. 만든 함수 export 해야함.
+3. 만든 함수 import해서 사용
+
+Redux state 변경하려면
+1. state 변경해주는 함수 만들기
+2. export 
+3. dispatch( state 변경함수() )
 */

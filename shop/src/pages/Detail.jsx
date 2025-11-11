@@ -1,18 +1,22 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Container, Row, Col, Nav } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams, useNavigate } from "react-router-dom";
+import { addCart } from "../store/cartSlice";
 // state 사용은 1. Context를 import
-import { Context1 } from "./../App.jsx";
 
 function Detail({ shoes }) {
-  let { 재고 } = useContext(Context1);
-
   let [visible, setVisible] = useState(true);
   let [count, setCount] = useState(0);
   let [num, setNum] = useState("");
   let [tab, setTab] = useState(0);
 
   let [fade, setFade] = useState("");
+
+  let state = useSelector((state) => state);
+  let dispatch = useDispatch();
+
+  let navigate = useNavigate();
 
   useEffect(() => {
     // fade라는 state를 end로 바꿔주세요
@@ -59,7 +63,7 @@ function Detail({ shoes }) {
       >
         버튼
       </button>
-      {재고[0]}
+      {/* {재고[0]} */}
       <Row>
         <Col>
           <img
@@ -76,7 +80,26 @@ function Detail({ shoes }) {
           <h4 className="pt-5">{findItem.title}</h4>
           <p>{findItem.content}</p>
           <p>{findItem.price}원</p>
-          <button className="btn btn-danger">주문하기</button>
+          <button
+            className="btn btn-danger"
+            onClick={() => {
+              dispatch(
+                addCart({ id: findItem.id, name: findItem.title, count: 1 })
+              );
+
+              console.log(state.cart);
+            }}
+          >
+            주문하기
+          </button>
+          <button
+            className="btn bg-white"
+            onClick={() => {
+              navigate("/cart");
+            }}
+          >
+            장바구니 이동
+          </button>
         </Col>
       </Row>
 
@@ -126,7 +149,6 @@ function Detail({ shoes }) {
 
 function TabContent({ tab }) {
   let [fade, setFade] = useState("");
-  let { 재고 } = useContext(Context1);
 
   useEffect(() => {
     // fade라는 state를 end로 바꿔주세요
@@ -142,7 +164,7 @@ function TabContent({ tab }) {
 
   return (
     <div className={`start ${fade}`}>
-      {[<div>{재고[0]}</div>, <div>내용1</div>, <div>내용2</div>][tab]}
+      {[<div>내용1</div>, <div>내용2</div>][tab]}
     </div>
   );
 }
