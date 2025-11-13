@@ -3,9 +3,17 @@ import { Container, Row, Col, Nav } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
 import { addCart } from "../store/cartSlice";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLike } from "../hooks/likes";
+import axios from "axios";
+import { useGetName } from "../hooks/getName";
 // state 사용은 1. Context를 import
 
 function Detail({ shoes }) {
+  let q = useQueryClient();
+  let result = q.getQueryData(["getName"]);
+  console.log(result);
+
   let [visible, setVisible] = useState(true);
   let [count, setCount] = useState(0);
   let [num, setNum] = useState("");
@@ -32,9 +40,9 @@ function Detail({ shoes }) {
     let a = setTimeout(() => {
       setVisible(false);
     }, 2000);
-    console.log(2);
+    // console.log(2);
     return () => {
-      console.log(1);
+      // console.log(1);
       clearTimeout(a);
     };
   });
@@ -50,8 +58,21 @@ function Detail({ shoes }) {
   let findItem = shoes.find(function (x) {
     return x.id == id;
   });
+
+  useEffect(() => {
+    console.log(findItem.id);
+    let watched = JSON.parse(localStorage.getItem("watched"));
+    watched = watched.filter((watchedId) => watchedId != findItem.id);
+    watched.unshift(findItem.id);
+    localStorage.setItem("watched", JSON.stringify(watched));
+  });
+
+  let { like, addLike } = useLike();
+  let { name } = useGetName();
+
   return (
     <Container className={`start ${fade}`}>
+      <div>{name}</div>
       {visible ? (
         <div className="alert alert-warning">2초이내 구매시 할인</div>
       ) : null}
@@ -67,7 +88,9 @@ function Detail({ shoes }) {
       <Row>
         <Col>
           <img
-            src="https://codingapple1.github.io/shop/shoes1.jpg"
+            src={`https://codingapple1.github.io/shop/shoes${
+              findItem.id + 1
+            }.jpg`}
             width="100%"
           />
           <input
@@ -77,6 +100,14 @@ function Detail({ shoes }) {
           ></input>
         </Col>
         <Col>
+          {like}
+          <span
+            onClick={() => {
+              addLike();
+            }}
+          >
+            ♥️
+          </span>
           <h4 className="pt-5">{findItem.title}</h4>
           <p>{findItem.content}</p>
           <p>{findItem.price}원</p>
@@ -87,7 +118,7 @@ function Detail({ shoes }) {
                 addCart({ id: findItem.id, name: findItem.title, count: 1 })
               );
 
-              console.log(state.cart);
+              // console.log(state.cart);
             }}
           >
             주문하기
@@ -164,7 +195,7 @@ function TabContent({ tab }) {
 
   return (
     <div className={`start ${fade}`}>
-      {[<div>내용1</div>, <div>내용2</div>][tab]}
+      {[<div>내용0</div>, <div>내용1</div>, <div>내용2</div>][tab]}
     </div>
   );
 }

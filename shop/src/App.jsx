@@ -1,14 +1,36 @@
-import { useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import "./App.css";
 import { Button, Container, Nav, Navbar, Row, Col } from "react-bootstrap";
 // import bg from "./assets/bg.png";
 import data from "./data.js";
 import { Routes, Route, Link, useNavigate, Outlet } from "react-router-dom";
-import Detail from "./pages/Detail.jsx";
+// import Detail from "./pages/Detail.jsx";
+// import Cart from "./pages/Cart.jsx";
+
+// 컴포넌트가 필요해질 때 import 해달라는 뜻. -> 자원 아끼기 가능
+// 단점. Cart, Detail 컴포넌트 로딩시간 발생
+const Detail = lazy(() => import("./pages/Detail.jsx"));
+const Cart = lazy(() => import("./pages/Cart.jsx"));
+
 import axios from "axios";
-import Cart from "./pages/Cart.jsx";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 function App() {
+  useEffect(() => {
+    if (localStorage.getItem("watched")) {
+      console.log("이미 존재");
+    } else {
+      localStorage.setItem("watched", JSON.stringify([]));
+    }
+  }, []);
+
+  let obj = { name: "kim" };
+  localStorage.setItem("data", obj); // 이거 오브젝트 깨짐
+  JSON.stringify(obj); // 문자열로 변환
+  localStorage.setItem("data", JSON.stringify(obj));
+  let 꺼냄 = localStorage.getItem("data");
+  console.log(JSON.parse(꺼냄).name);
+
   let [shoes, setShoes] = useState(data);
   let navigate = useNavigate();
   let [재고] = useState([10, 11, 12]);
@@ -16,6 +38,35 @@ function App() {
   let [loading, setLoading] = useState(false);
   let [hidden, setHidden] = useState(true);
   let [count, setCount] = useState(1);
+
+  let [count1, setCount1] = useState(0);
+  let [age, setAge] = useState(20);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (count1 < 3) {
+      setAge(age + 1);
+    }
+  }, [count1]);
+
+  let q = useQueryClient();
+
+  let result = useQuery({
+    queryKey: ["getName"],
+    queryFn: () => {
+      return axios
+        .get("https://codingapple1.github.io/userdata.json")
+        .then((a) => a.data);
+    },
+  });
+
+  console.log(result);
+
   return (
     <div className="App">
       <Navbar bg="primary" data-bs-theme="dark">
@@ -39,74 +90,91 @@ function App() {
           </Nav>
         </Container>
       </Navbar>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              <div className="main-bg"></div>
-              <Container>
-                <Row>
-                  {shoes.map((a, i) => {
-                    return (
-                      <Item title={a.title} content={a.content} i={i}></Item>
-                    );
-                  })}
-                </Row>
-              </Container>
-              {hidden ? (
-                <button
-                  onClick={() => {
-                    setLoading(true);
-                    axios
-                      .get(
-                        `https://codingapple1.github.io/shop/data${
-                          count + 1
-                        }.json`
-                      )
-                      .then((result) => {
-                        setTimeout(() => {
-                          let copy = [...shoes, ...result.data];
-                          setShoes(copy);
-                          setCount(count + 1);
-                          if (count + 1 == 3) setHidden(false);
 
+      {/* // <Suspense>로 감싸면 로딩중 UI 넣기 가능 */}
+      <Suspense fallback={<div>로딩중임</div>}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <div>
+                <div className="main-bg"></div>
+                <Container>
+                  <Row>
+                    {shoes.map((a, i) => {
+                      return (
+                        <Item
+                          title={a.title}
+                          content={a.content}
+                          i={i}
+                          navigate={navigate}
+                        ></Item>
+                      );
+                    })}
+                  </Row>
+                </Container>
+                {hidden ? (
+                  <button
+                    onClick={() => {
+                      setLoading(true);
+                      axios
+                        .get(
+                          `https://codingapple1.github.io/shop/data${
+                            count + 1
+                          }.json`
+                        )
+                        .then((result) => {
+                          setTimeout(() => {
+                            let copy = [...shoes, ...result.data];
+                            setShoes(copy);
+                            setCount(count + 1);
+                            if (count + 1 == 3) setHidden(false);
+
+                            setLoading(false);
+                          }, 500);
+                        })
+                        .catch(() => {
                           setLoading(false);
-                        }, 500);
-                      })
-                      .catch(() => {
-                        setLoading(false);
-                        console.log("실패함 ㅅㄱ");
-                      });
-                  }}
-                >
-                  버튼
-                </button>
-              ) : (
-                <div>더이상 상품이 없습니다.</div>
-              )}
-              {loading ? <div>로딩중입니다.</div> : null}
-            </div>
-          }
-        />
+                          console.log("실패함 ㅅㄱ");
+                        });
+                    }}
+                  >
+                    버튼
+                  </button>
+                ) : (
+                  <div>더이상 상품이 없습니다.</div>
+                )}
+                {loading ? <div>로딩중입니다.</div> : null}
+              </div>
+            }
+          />
 
-        <Route
-          path="/detail/:id"
-          element={
-            // 여기 안의 모든 컴포넌트는 재고, shoes 사용 가능
-            <Detail shoes={shoes} />
-          }
-        />
+          <Route
+            path="/detail/:id"
+            element={
+              // 여기 안의 모든 컴포넌트는 재고, shoes 사용 가능
+              <Detail shoes={shoes} />
+            }
+          />
 
-        <Route path="/cart" element={<Cart />}></Route>
+          <Route path="/cart" element={<Cart />}></Route>
 
-        <Route path="/about" element={<About />}>
-          <Route path="member" element={<div>멤버임</div>} />
-          <Route path="location" element={<div>위치정보임</div>} />
-        </Route>
+          <Route path="/about" element={<About />}>
+            <Route path="member" element={<div>멤버임</div>} />
+            <Route path="location" element={<div>위치정보임</div>} />
+          </Route>
 
-        <Route path="*" element={<div>없는페이지예요</div>} />
-      </Routes>
+          <Route path="*" element={<div>없는페이지예요</div>} />
+        </Routes>
+      </Suspense>
+      <div>안녕하십니까 전 {age}</div>
+      <button
+        onClick={() => {
+          setCount1(count1 + 1);
+        }}
+      >
+        누르면 한 살 먹기
+      </button>
     </div>
   );
 }
@@ -121,7 +189,15 @@ function About() {
 
 function Item(props) {
   return (
-    <Col>
+    <Col
+      onClick={() => {
+        props.navigate(`detail/${props.i}`);
+        let watched = JSON.parse(localStorage.getItem("watched"));
+        watched = watched.filter((watchedId) => watchedId != props.i);
+        watched.unshift(props.i);
+        localStorage.setItem("watched", JSON.stringify(watched));
+      }}
+    >
       <img
         src={
           "https://codingapple1.github.io/shop/shoes" + (props.i + 1) + ".jpg"
@@ -413,4 +489,46 @@ Redux state 변경하려면
 1. state 변경해주는 함수 만들기
 2. export 
 3. dispatch( state 변경함수() )
+
+
+Local Storage
+1. key : value 형태로 저장 가능
+2. 문자만 저장 가능
+3. 최대 5MB 까지 문자만 저장 가능
+4. 사이트 재접속해도 남아있음(브라우저 청소하면 삭제됨)
+
+localStorage.setItem('김진용', '바보')
+undefined
+localStorage.getItem('김진용')
+'바보'
+localStorage.removeItem('김진용')
+undefined
+
+array/object 저장하려면 JSON으로 바꾸면 됨.
+
+array/object -> JSON 변환하면 localStorage에 저장가능
+
+
+ajax 코드를 짜다보면 React Query가 필요할 때가 있을 수 있음. -> Tanstack Query로 이름 바뀌었다고 함.
+1. 몇 초마다 자동으로 ajax 요청
+2. ajax 요청 실패시 재시도
+3. 성공/실패시 각각 다른 html 보여주기
+4. ajax 결과 캐싱
+
+npm install @tanstack/react-query@5
+
+main.jsx에 셋팅도 하기
+
+
+useEffect + axios 쓰면 되는데 TanstackQuery 쓰는 이유
+왜 그러냐면 장점이 있음
+1. ajax 상태체크 쉬움
+2. ajax 재요청 자주 해줌
+3. 캐싱 알아서 해줌
+
+캐싱된 데이터만 뺴서 쓸 수도 있음
+
+Single Page Application 특징: 발행하면 js 파일 하나에 모든 코드 다 쑤셔넣음
+
+useTransition(), useDeferredvalue() 라는 걸로 컴포넌트 성능 향상 가능
 */
